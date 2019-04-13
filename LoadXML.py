@@ -3,7 +3,7 @@
 """
 Created on Sat Apr 13 08:41:28 2019
 
-@author: polo
+@author: Yazid Bounab
 """
 import pandas as pd 
 import xml.etree.ElementTree as et 
@@ -11,9 +11,7 @@ import xml.etree.ElementTree as et
 xtree = et.parse("Webscope_L24/ydata-search-query-log-to-entities-v1_0.xml")
 xroot = xtree.getroot()
 
-
 Sessions = []
-#for child in xroot:
 children = xroot.getchildren()
 for child in children:
     Session = {'id':'','numqueries':'','queries':[]}
@@ -21,8 +19,6 @@ for child in children:
     Session['id'] = child.attrib.get("id")
     Session['numqueries'] = child.attrib.get("numqueries")
     
-    #Session['query'] = child[0].find('text').text
-    #print (et.dump(child))
     for node in child:
         Attributes = {'adult':'', 'ambiguous':'', 'assessor':'', 'cannot-judge':'', 'navigational':'', 'no-wp':'', 'non-english':'', 'quote-question':'', 'starttime':''}
         Query = {'text':'','attribues':Attributes,'annotations':[]}
@@ -43,7 +39,5 @@ for child in children:
                
                annotation['target'] = Target
             Query['annotations'].append(annotation)
-        
         Session['queries'].append(Query)
-    #break    
     Sessions.append (Session)
