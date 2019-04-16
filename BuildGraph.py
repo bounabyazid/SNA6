@@ -16,10 +16,10 @@ from SNA_NER import NER_Stanford
 
 def Histogramme(Dict):
     avrg = int(mean(list(Dict.values())))
-
+    print (avrg)
     myList = [abs(val-avrg) for val in Dict.values()]
     Closest = myList.index(min(myList))
-    
+    print (list(Dict.keys())[Closest])
     return Dict[str(list(Dict.keys())[Closest])]
 
 def Similarity_EditDistance(S1,S2):
@@ -36,7 +36,9 @@ def Similarity_EditDistance(S1,S2):
         for q1 in S1:
             Sum += ED.eval(q2, q1)
         Sum2 += Sum/len(S1)    
-    return round((Sum1+Sum2)/2, 2)
+    #return round((Sum1+Sum2)/2, 2)
+    return int((Sum1+Sum2)/2)
+
 
 def AdjancancyMatrix():
     NER = NER_Stanford()
@@ -55,10 +57,11 @@ def AdjancancyMatrix():
     
     for val in set(relatedness.flatten()):
         Dict[str(val)] = list(relatedness.flatten()).count(val)
-        
-    return NER,QNER,relatedness,Dict
+    Threshold = Histogramme(Dict)
+    
+    return NER,QNER,relatedness,Dict,Threshold
     
 def createGraph():
     return True
     
-NER,QNER,relatedness,Dict = AdjancancyMatrix()
+NER,QNER,relatedness,Dict,Threshold = AdjancancyMatrix()
