@@ -18,8 +18,8 @@ import en_core_web_sm
 nlp = en_core_web_sm.load()
 
 
-tagger = StanfordNERTagger('/home/polo/Downloads/stanford-ner-2018-02-27/classifiers/english.all.3class.distsim.crf.ser.gz',
-                           '/home/polo/Downloads/stanford-ner-2018-02-27/stanford-ner.jar', encoding='utf-8')
+#tagger = StanfordNERTagger('/home/polo/Downloads/stanford-ner-2018-02-27/classifiers/english.all.3class.distsim.crf.ser.gz',
+#                           '/home/polo/Downloads/stanford-ner-2018-02-27/stanford-ner.jar', encoding='utf-8')
 
 def NER_Entities(classified_Text_list,Queries):
     NER = []
@@ -46,7 +46,7 @@ def NER_Stanford():
     for Query in Queries:
         tokenized_Queries.append(word_tokenize(Query))
     
-    classified_Text_list = tagger.tag_sents(tokenized_Queries)
+    classified_Text_list = ''#tagger.tag_sents(tokenized_Queries)
 
     NER = NER_Entities(classified_Text_list,Queries)
     return NER
@@ -59,6 +59,19 @@ def NER_Spacy():
         doc = nlp(Query)
         NER.append({Query:[(X.text, X.label_) for X in doc.ents]})
     return NER
-
-NER = NER_Spacy()
-
+    
+def NER_Spacy2(Query):
+    QPERS = []
+    QORG = []
+    QLOC = []
+    
+    doc = nlp(Query)
+    for entity in doc.ents:
+        if entity.label_ == 'PERSON':
+           QPERS.append(entity.text)
+        elif entity.label_ == 'ORG':
+            QORG.append(entity.text)
+        elif entity.label_ == 'LOC':
+            QLOC.append(entity.text)
+            
+    return QPERS, QORG, QLOC
