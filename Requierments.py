@@ -38,7 +38,8 @@ def plot_degree_dist(G):
     #plt.hist(Degree_Dist)
     plt.show()
     
-return degrees,Degree_Dist
+    return degrees,Degree_Dist
+
 def Degree_Distribution(G,plot=False):
     degree_hist = nx.degree_histogram(G) 
     degree_hist = np.array(degree_hist, dtype=float)
@@ -79,15 +80,19 @@ def node_rank(G):
     
     Node_Rank['Betweenness Centrality'] = max(bw_centrality, key=bw_centrality.get)
     
-    mean_shortest_paths =[]
+    mean_shortest_paths = {}
     for source in range(G.number_of_nodes()):
-        for target in range(G.number_of_nodes()):
-            if source != target:
-               shortest_simple_paths(G, source, target, weight=None)
+        #paths_len = []
+        #for target in range(G.number_of_nodes()):
+            #if source != target:
+               #shortest_simple_paths(G, source, target, weight=None)
+            #   paths_len.append(nx.shortest_path_length(G,source,target))
+        #mean_shortest_paths[source] = paths_len
+
+        mean_shortest_paths[source] = mean(list(nx.shortest_path_length(G,source).values))
+    Node_Rank['Average path length'] = min(mean_shortest_paths, key=mean_shortest_paths.get)
     
-    Node_Rank['Average path length'] = int(np.argmax(degree_prob))
-    
-    return Node_Rank
+    return Node_Rank, mean_shortest_paths
 
 def Community_detection(G):
     #http://ryancompton.net/2014/06/16/community-detection-and-colored-plotting-in-networkx/
@@ -112,5 +117,5 @@ def Small_World():
     EG= nx.erdos_renyi_graph(50,0.5)
 
 parts, Communities = Community_detection(G)
-Node_Rank = node_rank(G)
+Node_Rank, mean_shortest_paths = node_rank(G)
 degree_prob = list(Degree_Distribution(G,plot=False))
