@@ -9,20 +9,27 @@ import collections
 import numpy as np
 import editdistance as ED
 
+import gensim
+import gensim.corpora as corpora
+from gensim.utils import simple_preprocess
+from gensim.models import CoherenceModel
+
 from scipy import mean
 from SNA_NER import NER_Stanford
 
 import matplotlib.pyplot as plt
 import networkx as nx
 
+from Requierments import Degree_Distribution, Small_World, Community_detection, Graph_Global_Mesures
+
 #Dict = {'1':7,'2':5,'3':5,'4':4,'5':8,'6':3,'7':7,'8':8}
 
 def Histogramme(Dict):
     avrg = int(mean(list(Dict.values())))
-    print (avrg)
+    #print (avrg)
     myList = [abs(val-avrg) for val in Dict.values()]
     Closest = myList.index(min(myList))
-    print (list(Dict.keys())[Closest])
+    print ('Threshold',list(Dict.keys())[Closest])
     #return Dict[str(list(Dict.keys())[Closest])]
     return list(Dict.keys())[Closest]
 
@@ -83,7 +90,7 @@ def createGraph(M,NER_Queries):
     G = nx.Graph()
     G.add_edges_from(edges)
     nx.draw(G, node_size=len(Nodes), labels=None, with_labels=True)
-    
+
     plt.show()
     
     return G
@@ -115,20 +122,65 @@ def Degree_Histogram(G):
     
     return deg, cnt,degree_sequence
 
-def Graph_Global_Mesures(G):
-    degree_sequence = sorted([d for n, d in G.degree()], reverse=True)  # degree sequence
-    # print "Degree sequence", degree_sequence
-    degreeCount = collections.Counter(degree_sequence)
-    deg, cnt = zip(*degreeCount.items())
-    degdist = []
-    
-    for i in range(0,len(cnt)):
-        degdist.append(cnt[i]/len(cnt))
+def Topics_Words(lda_model,num_words):
+    Topic_Words = []
+    #for index, topic in lda_model.show_topics(formatted=False, num_words= 30):
+        #print('Topic: {} \nWords: {}'.format(index, [w[0] for w in topic]))
+    for index, topic in lda_model.show_topics(formatted=False, num_words= num_words):
+        Topic_Words.append([w[0] for w in topic]) 
+    return Topic_Words
+
+def LDA_Query_Communitiies(NER,QNER,Communities_Nodes):
+    Query_Comunities = {}
+
+    for community in Communities_Nodes:
+        docs = []
         
-    return deg, cnt,degree_sequence,degdist
+        for node in Communities_Nodes[community]:
+            docs.append(QNER[node])
+            
+        # Create Dictionary
+        id2word = corpora.Dictionary(docs)
+
+        # Create Corpus
+        texts = docs
+
+        # Term Document Frequency
+        corpus = [id2word.doc2bow(text) for text in texts]
     
-NER,QNER,relatedness,Dict,Threshold,M = AdjancancyMatrix()
+        lda_model = gensim.models.ldamodel.LdaModel(corpus=corpus,
+                                                id2word=id2word,
+                                                num_topics=5, 
+                                                random_state=100,
+                                                update_every=1,
+                                                chunksize=100,
+                                                passes=10,
+                                                alpha='auto',
+                                                per_word_topics=True)
+        
+        Query_Comunities[community] = Topics_Words(lda_model,num_words=5)
+    
+    return Query_Comunities
+    
+#NER,QNER,relatedness,Dict,Threshold,M = AdjancancyMatrix()
 
-G = createGraph(M,NER)
+#G = createGraph(M,NER)
 
-deg, cnt,degree_sequence, degdist = Graph_Global_Mesures(G)
+#Degree_Distribution(G,plot=True)
+
+#Communities, Communities_Nodes = Community_detection(G)
+
+#Query_Comunities = LDA_Query_Communitiies(NER,QNER,Communities_Nodes)
+
+#Small_World(len(NER),G)
+F = open('Config.txt','w') 
+
+for k in range(20,157):
+    for p in np.arange(0.1, 0.9, 0.05):
+        watts_strogatz = nx.watts_strogatz_graph(158,k,p)
+        nx.nodes(watts_strogatz)
+        mean_DD3, GCoeff3, mean_path_len3, diameter3 = Graph_Global_Mesures(watts_strogatz)
+        S = 'k='+str(k)+' p='+str(p)+' Mean='+str(mean_DD3)+' CC='+str(GCoeff3)+' avg_path='+str(mean_path_len3)+' Diameter='+str(diameter3)
+        F.write(S)
+        
+F.close()

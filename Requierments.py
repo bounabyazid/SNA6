@@ -15,30 +15,10 @@ import matplotlib.pyplot as plt
 
 #https://github.com/taynaud/python-louvain/
 
-G = nx.gnp_random_graph(50, 0.5, directed=False)
-nx.draw(G, node_size=50, labels=None, with_labels=True)
-A = nx.adjacency_matrix(G).todense()
-plt.show()
-
-def plot_degree_dist(G):
-    all_degrees = [G.degree(n) for n in G.nodes()]
-    degrees = list(set(all_degrees))
-    #Degree_Dist = [all_degrees.count(degree)/G.number_of_nodes() for degree in degrees]
-    Degree_Dist = [all_degrees.count(n)/G.number_of_nodes() for n in range(G.number_of_nodes())]
-    
-    print (round(sum(Degree_Dist),2),round(mean(list(Degree_Dist)),2))
-    
-    plt.plot([i for i in range(0,G.number_of_nodes())], [np.log10(DDist) for DDist in Degree_Dist]) 
-    
-    #plt.loglog(degrees, Degree_Dist)
-    plt.xlabel('degree')
-    plt.ylabel('p(degree)')
-    plt.title('Degree Distribution')
-    
-    #plt.hist(Degree_Dist)
-    plt.show()
-    
-    return degrees,Degree_Dist
+#G = nx.gnp_random_graph(50, 0.5, directed=False)
+#nx.draw(G, node_size=50, labels=None, with_labels=True)
+#A = nx.adjacency_matrix(G).todense()
+#plt.show()
 
 def Degree_Distribution(G,plot=False):
     degree_hist = nx.degree_histogram(G) 
@@ -58,16 +38,17 @@ def Degree_Distribution(G,plot=False):
     
     return degree_prob
 
-def graph_global_measures(G):
-    mean_DD = round(mean(Degree_Distribution(G),plot=False),2)
+def Graph_Global_Mesures(G):
+    mean_DD = round(mean(Degree_Distribution(G,plot=False)),2)
     GCoeff = round(nx.transitivity(G),2)
     mean_path_len = round(nx.average_shortest_path_length(G),2)
     diameter = nx.diameter(G)
     return mean_DD, GCoeff, mean_path_len, diameter
     
-def node_rank(G):
+def Node_rank(G):
     Node_Rank = {'Degree distribution':'','Betweenness Centrality':'','Average path length':''}
     degree_prob = Degree_Distribution(G,plot=False)
+    
     Node_Rank['Degree distribution'] = int(np.argmax(degree_prob))
     
     bw_centrality = nx.betweenness_centrality(G, normalized=True)
@@ -75,9 +56,7 @@ def node_rank(G):
 
     for k, v in bw_centrality.items():
         bw_centrality[k] = round(v, 2)
-        
-    #print ("Betweenness Centrality:",bw_centrality)
-    
+
     Node_Rank['Betweenness Centrality'] = max(bw_centrality, key=bw_centrality.get)
     
     mean_shortest_paths = {}
@@ -89,7 +68,7 @@ def node_rank(G):
             #   paths_len.append(nx.shortest_path_length(G,source,target))
         #mean_shortest_paths[source] = paths_len
 
-        mean_shortest_paths[source] = mean(list(nx.shortest_path_length(G,source).values))
+        mean_shortest_paths[source] = mean(list(nx.shortest_path_length(G,source).values()))
     Node_Rank['Average path length'] = min(mean_shortest_paths, key=mean_shortest_paths.get)
     
     return Node_Rank, mean_shortest_paths
@@ -100,22 +79,36 @@ def Community_detection(G):
     values = [parts.get(node) for node in G.nodes()]
 
     nx.draw_spring(G, cmap = plt.get_cmap('jet'), node_color = values, node_size=220, with_labels=True)
+    plt.show()
 
-    print ('we have ',len(list(set(values))),' Communities')
+    print ('We have',len(list(set(values))),'Communities')
     
     Communities = []
+    Communities_Nodes = {}
     for val in list(set(values)):
-        Communities.append(G.subgraph([k for k,v in parts.items() if v == val]))
+        Communities_Nodes[val] = [k for k,v in parts.items() if v == val]
+        Communities.append(G.subgraph(Communities_Nodes[val]))
+        mean_DD, GCoeff, mean_path_len, diameter = Graph_Global_Mesures(G.subgraph(Communities_Nodes[val]))
+        print ('|Mean|',mean_DD, '|CC|',GCoeff, '|avg sh path|',mean_path_len, '|Diameter|',diameter,'|')
     
-    return parts, Communities
+    return Communities, Communities_Nodes
     
+def Small_World(Nb_Nodes,G):
+    
+    EG= nx.erdos_renyi_graph(Nb_Nodes,0.5)
+    #nx.draw(EG, node_size=Nb_Nodes, labels=None, with_labels=False)
+    #plt.show()
 
-def Small_World():
-    watts_strogatz = nx.watts_strogatz_graph(20,2,0.15)
+    watts_strogatz = nx.watts_strogatz_graph(Nb_Nodes,Nb_Nodes-1,0.4)
     nx.nodes(watts_strogatz)
-
-    EG= nx.erdos_renyi_graph(50,0.5)
-
-parts, Communities = Community_detection(G)
-Node_Rank, mean_shortest_paths = node_rank(G)
-degree_prob = list(Degree_Distribution(G,plot=False))
+        
+    mean_DD, GCoeff, mean_path_len, diameter = Graph_Global_Mesures(G)
+    mean_DD2, GCoeff2, mean_path_len2, diameter2 = Graph_Global_Mesures(EG)
+    mean_DD3, GCoeff3, mean_path_len3, diameter3 = Graph_Global_Mesures(watts_strogatz)
+    
+    print ('Mean',mean_DD, 'CC',GCoeff, 'avg s path',mean_path_len, 'Diameter',diameter)
+    print ('Mean',mean_DD2,'CC',GCoeff2,'avg s path',mean_path_len2,'Diameter',diameter2)
+    print ('Mean',mean_DD3,'CC',GCoeff3,'avg s path',mean_path_len3,'Diameter',diameter3)
+#parts, Communities = Community_detection(G)
+#Node_Rank, mean_shortest_paths = Node_rank(G)
+#degree_prob = list(Degree_Distribution(G,plot=False))
