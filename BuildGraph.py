@@ -20,7 +20,7 @@ from SNA_NER import NER_Stanford
 import matplotlib.pyplot as plt
 import networkx as nx
 
-from Requierments import Degree_Distribution, Small_World, Community_detection, Graph_Global_Mesures
+from Requierments import Degree_Distribution, Small_World, Community_detection, Graph_Global_Mesures, Node_rank
 
 #Dict = {'1':7,'2':5,'3':5,'4':4,'5':8,'6':3,'7':7,'8':8}
 
@@ -74,7 +74,7 @@ def AdjancancyMatrix():
     
     for i in range (0,len(QNER)-1):
         for j in range (1,len(QNER)):
-            if relatedness[i][j] >= Threshold:
+            if relatedness[i][j] < Threshold:
                M[i][j] = 1
     
     return NER,QNER,relatedness,Dict,Threshold,M
@@ -162,25 +162,16 @@ def LDA_Query_Communitiies(NER,QNER,Communities_Nodes):
     
     return Query_Comunities
     
-#NER,QNER,relatedness,Dict,Threshold,M = AdjancancyMatrix()
+NER,QNER,relatedness,Dict,Threshold,M = AdjancancyMatrix()
 
-#G = createGraph(M,NER)
+G = createGraph(M,NER)
 
-#Degree_Distribution(G,plot=True)
+Degree_Distribution(G,plot=True)
 
-#Communities, Communities_Nodes = Community_detection(G)
+Node_Rank, mean_shortest_paths = Node_rank(G)
 
-#Query_Comunities = LDA_Query_Communitiies(NER,QNER,Communities_Nodes)
+Communities, Communities_Nodes = Community_detection(G)
 
-#Small_World(len(NER),G)
-F = open('Config.txt','w') 
+Query_Comunities = LDA_Query_Communitiies(NER,QNER,Communities_Nodes)
 
-for k in range(20,157):
-    for p in np.arange(0.1, 0.9, 0.05):
-        watts_strogatz = nx.watts_strogatz_graph(158,k,p)
-        nx.nodes(watts_strogatz)
-        mean_DD3, GCoeff3, mean_path_len3, diameter3 = Graph_Global_Mesures(watts_strogatz)
-        S = 'k='+str(k)+' p='+str(p)+' Mean='+str(mean_DD3)+' CC='+str(GCoeff3)+' avg_path='+str(mean_path_len3)+' Diameter='+str(diameter3)
-        F.write(S)
-        
-F.close()
+Small_World(len(NER),G)

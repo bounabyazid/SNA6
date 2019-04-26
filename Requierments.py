@@ -28,11 +28,12 @@ def Degree_Distribution(G,plot=False):
     if plot:
        plt.plot(degree_hist,degree_prob,'b.')
        plt.loglog(degree_hist,degree_prob)
-    
+
        plt.xlabel('degree')
        plt.ylabel('p(degree)')
        plt.title('Degree Distribution')
-    
+       plt.show()
+
        plt.hist(degree_hist)
        plt.show()
     
@@ -109,6 +110,19 @@ def Small_World(Nb_Nodes,G):
     print ('Mean',mean_DD, 'CC',GCoeff, 'avg s path',mean_path_len, 'Diameter',diameter)
     print ('Mean',mean_DD2,'CC',GCoeff2,'avg s path',mean_path_len2,'Diameter',diameter2)
     print ('Mean',mean_DD3,'CC',GCoeff3,'avg s path',mean_path_len3,'Diameter',diameter3)
+    
+def Gonfiguration():
+    F = open('Config.txt','w') 
+
+    for k in range(20,157):
+        for p in np.arange(0.1, 0.9, 0.05):
+            watts_strogatz = nx.watts_strogatz_graph(158,k,p)
+            nx.nodes(watts_strogatz)
+            mean_DD3, GCoeff3, mean_path_len3, diameter3 = Graph_Global_Mesures(watts_strogatz)
+            S = 'k='+str(k)+' p='+str(p)+' Mean='+str(mean_DD3)+' CC='+str(GCoeff3)+' avg_path='+str(mean_path_len3)+' Diameter='+str(diameter3)
+            F.write(S)
+        
+    F.close()
 #parts, Communities = Community_detection(G)
 #Node_Rank, mean_shortest_paths = Node_rank(G)
 #degree_prob = list(Degree_Distribution(G,plot=False))
