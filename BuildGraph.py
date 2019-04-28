@@ -20,7 +20,7 @@ from SNA_NER import NER_Stanford
 import matplotlib.pyplot as plt
 import networkx as nx
 
-from Requierments import Degree_Distribution, Small_World, Community_detection, Graph_Global_Mesures, Node_rank
+from Requierments import *
 
 #Dict = {'1':7,'2':5,'3':5,'4':4,'5':8,'6':3,'7':7,'8':8}
 
@@ -166,6 +166,8 @@ NER,QNER,relatedness,Dict,Threshold,M = AdjancancyMatrix()
 
 G = createGraph(M,NER)
 
+Degree_Histogram(G)
+
 Degree_Distribution(G,plot=True)
 
 Node_Rank, mean_shortest_paths = Node_rank(G)
@@ -175,3 +177,5 @@ Communities, Communities_Nodes = Community_detection(G)
 Query_Comunities = LDA_Query_Communitiies(NER,QNER,Communities_Nodes)
 
 Small_World(len(NER),G)
+
+Gonfiguration()
